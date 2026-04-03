@@ -7,22 +7,21 @@ Includes: DRF, JWT Authentication, django-filter
 
 from pathlib import Path
 from datetime import timedelta
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Load environment variables from .env file
+from dotenv import load_dotenv
+load_dotenv()
 
 # Quick-start development settings - unsuitable for production
-SECRET_KEY = 'django-insecure-sm4*3u2+ccne18&n2nu5ir+08j)+1ykhy&&2n=(@1#^)c(-pk@'
+SECRET_KEY = os.environ.get('SECRET_KEY')
 
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = []
-
-
-# =============================================================================
-# APPLICATION DEFINITION
-# =============================================================================
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -72,21 +71,12 @@ TEMPLATES = [
 WSGI_APPLICATION = 'core.wsgi.application'
 
 
-# =============================================================================
-# DATABASE - Using SQLite for simplicity
-# =============================================================================
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
-
-# =============================================================================
-# PASSWORD VALIDATION
-# =============================================================================
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -104,10 +94,6 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
-# =============================================================================
-# INTERNATIONALIZATION
-# =============================================================================
-
 LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'UTC'
@@ -117,24 +103,9 @@ USE_I18N = True
 USE_TZ = True
 
 
-# =============================================================================
-# STATIC FILES
-# =============================================================================
-
 STATIC_URL = 'static/'
 
-
-# =============================================================================
-# CUSTOM USER MODEL
-# Tell Django to use our custom User model instead of the default one
-# =============================================================================
-
 AUTH_USER_MODEL = 'users.User'
-
-
-# =============================================================================
-# DJANGO REST FRAMEWORK CONFIGURATION
-# =============================================================================
 
 REST_FRAMEWORK = {
     # Use JWT tokens for authentication (not session-based)
@@ -159,10 +130,6 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 10,
 }
 
-
-# =============================================================================
-# JWT TOKEN CONFIGURATION
-# =============================================================================
 
 SIMPLE_JWT = {
     # Access token expires in 1 day (for development convenience)
