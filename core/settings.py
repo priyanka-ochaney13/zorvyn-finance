@@ -1,26 +1,13 @@
-"""
-Django settings for core project.
-
-Finance Dashboard Backend - Configuration
-Includes: DRF, JWT Authentication, django-filter
-"""
-
 from pathlib import Path
 from datetime import timedelta
 import os
-
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
-
-# Load environment variables from .env file
 from dotenv import load_dotenv
+
+BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv()
 
-# Quick-start development settings - unsuitable for production
 SECRET_KEY = os.environ.get('SECRET_KEY')
-
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
-
 ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
@@ -30,15 +17,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    
-    # Third-party apps
-    'rest_framework',           # Django REST Framework for building APIs
-    'rest_framework_simplejwt', # JWT token authentication
-    'django_filters',           # Filtering support for DRF
-    
-    # Local apps
-    'users',                    # Custom user management with roles
-    'finance',                  # Financial records management
+    'rest_framework',
+    'rest_framework_simplejwt',
+    'django_filters',
+    'users',
+    'finance',
 ]
 
 MIDDLEWARE = [
@@ -108,42 +91,24 @@ STATIC_URL = 'static/'
 AUTH_USER_MODEL = 'users.User'
 
 REST_FRAMEWORK = {
-    # Use JWT tokens for authentication (not session-based)
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
-    
-    # Require authentication by default for all endpoints
-    # Individual views can override this if needed
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
-    
-    # Enable django-filter for filtering querysets
     'DEFAULT_FILTER_BACKENDS': [
         'django_filters.rest_framework.DjangoFilterBackend',
         'rest_framework.filters.OrderingFilter',
     ],
-    
-    # Standard pagination - 10 items per page
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10,
 }
 
-
 SIMPLE_JWT = {
-    # Access token expires in 1 day (for development convenience)
     'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
-    
-    # Refresh token expires in 7 days
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
-    
-    # Generate new refresh token when refreshing
     'ROTATE_REFRESH_TOKENS': True,
-    
-    # Blacklist old refresh tokens after rotation
     'BLACKLIST_AFTER_ROTATION': True,
-    
-    # Token type in header: "Bearer <token>"
     'AUTH_HEADER_TYPES': ('Bearer',),
 }

@@ -3,11 +3,6 @@ from .models import FinancialRecord
 
 
 class FinancialRecordFilter(django_filters.FilterSet):
-    """
-    Filter class for FinancialRecord.
-    Supports filtering by date range, category, and type.
-    """
-    
     date_from = django_filters.DateFilter(
         field_name='date',
         lookup_expr='gte',

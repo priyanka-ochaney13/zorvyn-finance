@@ -3,12 +3,6 @@ from django.conf import settings
 
 
 class FinancialRecord(models.Model):
-    """
-    Financial record representing an income or expense transaction.
-    Linked to a user who created the record.
-    All amounts are in Indian Rupees (Rs).
-    """
-    
     TYPE_CHOICES = [
         ('income', 'Income'),
         ('expense', 'Expense'),
@@ -30,48 +24,13 @@ class FinancialRecord(models.Model):
         ('INR', 'Indian Rupees (₹)'),
     ]
     
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='financial_records',
-        help_text='User who owns this financial record'
-    )
-    
-    type = models.CharField(
-        max_length=10,
-        choices=TYPE_CHOICES,
-        help_text='Type of transaction'
-    )
-    
-    category = models.CharField(
-        max_length=20,
-        choices=CATEGORY_CHOICES,
-        help_text='Category of the transaction'
-    )
-    
-    amount = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        help_text='Transaction amount in Indian Rupees (Rs)'
-    )
-    
-    currency = models.CharField(
-        max_length=3,
-        choices=CURRENCY_CHOICES,
-        default='INR',
-        help_text='Currency type (currently only INR supported)'
-    )
-    
-    date = models.DateField(
-        help_text='Date of the transaction'
-    )
-    
-    description = models.TextField(
-        blank=True,
-        default='',
-        help_text='Optional description of the transaction'
-    )
-    
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='financial_records')
+    type = models.CharField(max_length=10, choices=TYPE_CHOICES)
+    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    currency = models.CharField(max_length=3, choices=CURRENCY_CHOICES, default='INR')
+    date = models.DateField()
+    description = models.TextField(blank=True, default='')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
