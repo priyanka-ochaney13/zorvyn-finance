@@ -1,4 +1,4 @@
-from rest_framework import generics, status
+from rest_framework import generics, status, viewsets
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied, ValidationError as DRFValidationError
@@ -23,9 +23,15 @@ from .filters import FinancialRecordFilter
 from .permissions import CanViewRecords, CanModifyRecords, CanAccessDashboard
 
 
-class FinancialRecordListView(generics.ListAPIView):
-    serializer_class = FinancialRecordSerializer
-    permission_classes = [IsAuthenticated, CanViewRecords]
+class FinancialRecordViewSet(viewsets.ModelViewSet):
+    """
+    RESTful ViewSet for financial records.
+    GET    /records/        - List all records
+    POST   /records/        - Create a record
+    GET    /records/{id}/   - Retrieve a record
+    PUT    /records/{id}/   - Update a record
+    DELETE /records/{id}/   - Delete a record
+    """
     filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
     filterset_class = FinancialRecordFilter
     ordering_fields = ['date', 'amount', 'created_at']
@@ -34,7 +40,19 @@ class FinancialRecordListView(generics.ListAPIView):
 
     def get_queryset(self):
         return FinancialRecord.objects.filter(user=self.request.user)
-    
+
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return FinancialRecordCreateSerializer
+        elif self.action in ['update', 'partial_update']:
+            return FinancialRecordUpdateSerializer
+        return FinancialRecordSerializer
+
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            return [IsAuthenticated(), CanViewRecords()]
+        return [IsAuthenticated(), CanModifyRecords()]
+
     def list(self, request, *args, **kwargs):
         try:
             return super().list(request, *args, **kwargs)
@@ -44,43 +62,30 @@ class FinancialRecordListView(generics.ListAPIView):
                 'details': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-
-class FinancialRecordCreateView(generics.CreateAPIView):
-    serializer_class = FinancialRecordCreateSerializer
-    permission_classes = [IsAuthenticated, CanModifyRecords]
-    
     def create(self, request, *args, **kwargs):
         try:
             serializer = self.get_serializer(data=request.data)
-            
+
             if not serializer.is_valid():
                 return Response({
                     'error': 'Validation failed',
                     'details': serializer.errors
                 }, status=status.HTTP_400_BAD_REQUEST)
-            
+
             record = serializer.save()
             response_data = FinancialRecordSerializer(record).data
-            
+
             return Response({
                 'message': 'Financial record created successfully',
                 'record': response_data
             }, status=status.HTTP_201_CREATED)
-        
+
         except Exception as e:
             return Response({
                 'error': 'Failed to create financial record',
                 'details': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-
-class FinancialRecordDetailView(generics.RetrieveAPIView):
-    serializer_class = FinancialRecordSerializer
-    permission_classes = [IsAuthenticated, CanViewRecords]
-    
-    def get_queryset(self):
-        return FinancialRecord.objects.filter(user=self.request.user)
-    
     def retrieve(self, request, *args, **kwargs):
         try:
             return super().retrieve(request, *args, **kwargs)
@@ -95,34 +100,26 @@ class FinancialRecordDetailView(generics.RetrieveAPIView):
                 'details': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-
-class FinancialRecordUpdateView(generics.UpdateAPIView):
-    serializer_class = FinancialRecordUpdateSerializer
-    permission_classes = [IsAuthenticated, CanModifyRecords]
-    
-    def get_queryset(self):
-        return FinancialRecord.objects.filter(user=self.request.user)
-    
     def update(self, request, *args, **kwargs):
         try:
             partial = kwargs.pop('partial', False)
             instance = self.get_object()
             serializer = self.get_serializer(instance, data=request.data, partial=partial)
-            
+
             if not serializer.is_valid():
                 return Response({
                     'error': 'Validation failed',
                     'details': serializer.errors
                 }, status=status.HTTP_400_BAD_REQUEST)
-            
+
             self.perform_update(serializer)
             response_data = FinancialRecordSerializer(instance).data
-            
+
             return Response({
                 'message': 'Financial record updated successfully',
                 'record': response_data
             }, status=status.HTTP_200_OK)
-        
+
         except Http404:
             return Response({
                 'error': 'Record not found',
@@ -134,25 +131,17 @@ class FinancialRecordUpdateView(generics.UpdateAPIView):
                 'details': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-
-class FinancialRecordDeleteView(generics.DestroyAPIView):
-    serializer_class = FinancialRecordSerializer
-    permission_classes = [IsAuthenticated, CanModifyRecords]
-    
-    def get_queryset(self):
-        return FinancialRecord.objects.filter(user=self.request.user)
-    
     def destroy(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
             record_id = instance.id
             self.perform_destroy(instance)
-            
+
             return Response({
                 'message': 'Financial record deleted successfully',
                 'record_id': record_id
             }, status=status.HTTP_200_OK)
-        
+
         except Http404:
             return Response({
                 'error': 'Record not found',
